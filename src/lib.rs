@@ -108,7 +108,7 @@ pub fn get_humidity(
     humidity
 }
 
-pub fn print_fw_version(fw_ver: u8) {
+pub fn hprint_fw_version(fw_ver: u8) {
     if fw_ver == 0x20 {
         hprintln!("Device FW version: 2.0").unwrap();
     } else if fw_ver == 0xFF {
@@ -118,7 +118,7 @@ pub fn print_fw_version(fw_ver: u8) {
     }
 }
 
-pub fn print_sensor_id(sensor_id: u64) {
+pub fn hprint_sensor_id(sensor_id: u64) {
     let snb_3 = (0x0000_0000_FF00_0000 & sensor_id) >> 24;
     let mut _dev_id: &str = Default::default();
     if snb_3 == 0x15 {
@@ -138,7 +138,7 @@ pub fn print_sensor_id(sensor_id: u64) {
  * Formula for temperature conversion
  * ( (175.72 * Temp_code) / 65536) - 46.85 = Temperature in Celcius
  */
-pub fn print_temperature(temperature: u16) {
+pub fn hprint_temperature(temperature: u16) {
     let temper_c = ((175.72 * temperature as f32) / 65536.0) - 46.85;
     let temper_f = (temper_c * 1.8) + 32.0;
     hprintln!("Temperature: {} Celcius {} Fahrenheit", temper_c, temper_f).unwrap();
@@ -148,7 +148,7 @@ pub fn print_temperature(temperature: u16) {
  * Formula for Relative Humidity % conversion
  * ( (125 * RH_code) / 65536) - 6 = % Relative Humidity
  */
-pub fn print_humidity(humidity: u16) {
+pub fn hprint_humidity(humidity: u16) {
     let percent_rh: f32 = ((125.0 * humidity as f32) / 65536.0) - 6.0;
     hprintln!("% Relative Humidity: {} % RH ", percent_rh).unwrap();
 }
@@ -190,10 +190,10 @@ mod tests {
     fn fw_ver_sensor_id_test() {
         let mut i2c1 = dev_init();
         let fw_ver = get_fw_version(&mut i2c1);
-        print_fw_version(fw_ver);
+        hprint_fw_version(fw_ver);
         assert_eq!(fw_ver, 0x20);
         let sensor_id = get_sensor_id(&mut i2c1);
-        print_sensor_id(sensor_id);
+        hprint_sensor_id(sensor_id);
         // 0x3D891CCC15FFB5FF
         assert_eq!(sensor_id, 0x3D89_1CCC_15FF_B5FF);
     }
