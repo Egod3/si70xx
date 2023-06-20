@@ -1,5 +1,4 @@
 #![no_std]
-#![no_main]
 
 use cortex_m_semihosting::hprintln;
 use stm32l4xx_hal::gpio::{Alternate, OpenDrain, Output, AF4, PB8, PB9};
@@ -188,7 +187,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn fw_ver_sensor_id_test() {
         let mut i2c1 = dev_init();
         let fw_ver = get_fw_version(&mut i2c1);
         print_fw_version(fw_ver);
