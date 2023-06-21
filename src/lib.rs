@@ -26,7 +26,7 @@ pub fn get_sensor_id(
             | ((buf_o[2] as u64) << 40)
             | ((buf_o[3] as u64) << 32);
     } else {
-        hprintln!("error getting sensor ID: {:?}", result).unwrap();
+        hprintln!("error getting sensor ID: {:?}", result);
     }
     buf_i[0] = 0xFC;
     buf_i[1] = 0xC9;
@@ -37,7 +37,7 @@ pub fn get_sensor_id(
             | ((buf_o[2] as u64) << 8)
             | (buf_o[3] as u64);
     } else {
-        hprintln!("error getting sensor ID: {:?}", result).unwrap();
+        hprintln!("error getting sensor ID: {:?}", result);
     }
     sensor_id
 }
@@ -59,7 +59,7 @@ pub fn get_fw_version(
     if let Ok(_val) = result {
         fw_ver = buf_o[0];
     } else {
-        hprintln!("error getting firmware version: {:?}", result).unwrap();
+        hprintln!("error getting firmware version: {:?}", result);
     }
     fw_ver
 }
@@ -81,7 +81,7 @@ pub fn get_temperature(
     if let Ok(_val) = result {
         temperature = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
     } else {
-        hprintln!("error getting temperature: {:?}", result).unwrap();
+        hprintln!("error getting temperature: {:?}", result);
     }
     temperature
 }
@@ -103,18 +103,18 @@ pub fn get_humidity(
     if let Ok(_val) = result {
         humidity = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
     } else {
-        hprintln!("error getting humidity: {:?}", result).unwrap();
+        hprintln!("error getting humidity: {:?}", result);
     }
     humidity
 }
 
 pub fn hprint_fw_version(fw_ver: u8) {
     if fw_ver == 0x20 {
-        hprintln!("Device FW version: 2.0").unwrap();
+        hprintln!("Device FW version: 2.0");
     } else if fw_ver == 0xFF {
-        hprintln!("Device FW version: 1.0").unwrap();
+        hprintln!("Device FW version: 1.0");
     } else {
-        hprintln!("Device FW version: unknown").unwrap();
+        hprintln!("Device FW version: unknown");
     }
 }
 
@@ -130,8 +130,8 @@ pub fn hprint_sensor_id(sensor_id: u64) {
     } else {
         _dev_id = "unknown";
     }
-    hprintln!("Device ID: {}", _dev_id).unwrap();
-    hprintln!("RAW sensor ID: {:#08X}", sensor_id).unwrap();
+    hprintln!("Device ID: {}", _dev_id);
+    hprintln!("RAW sensor ID: {:#08X}", sensor_id);
 }
 
 /*
@@ -141,7 +141,7 @@ pub fn hprint_sensor_id(sensor_id: u64) {
 pub fn hprint_temperature(temperature: u16) {
     let temper_c = ((175.72 * temperature as f32) / 65536.0) - 46.85;
     let temper_f = (temper_c * 1.8) + 32.0;
-    hprintln!("Temperature: {} Celcius {} Fahrenheit", temper_c, temper_f).unwrap();
+    hprintln!("Temperature: {} Celcius {} Fahrenheit", temper_c, temper_f);
 }
 
 /*
@@ -150,7 +150,7 @@ pub fn hprint_temperature(temperature: u16) {
  */
 pub fn hprint_humidity(humidity: u16) {
     let percent_rh: f32 = ((125.0 * humidity as f32) / 65536.0) - 6.0;
-    hprintln!("% Relative Humidity: {} % RH ", percent_rh).unwrap();
+    hprintln!("% Relative Humidity: {} % RH ", percent_rh);
 }
 
 #[allow(clippy::type_complexity)]
