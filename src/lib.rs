@@ -6,6 +6,28 @@ use stm32l4xx_hal::{i2c::I2c, pac, prelude::*};
 
 const I2C_SECOND_ADDR: u8 = 0x40;
 
+/// Send the Software Reset to the device to allow it to reset.
+pub fn reset_sensor(
+    i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
+        stm32l4xx_hal::pac::I2C1,
+        (
+            PB8<Alternate<AF4, Output<OpenDrain>>>,
+            PB9<Alternate<AF4, Output<OpenDrain>>>,
+        ),
+    >,
+) {
+    let buf_i = [0xFEu8, 0];
+    let mut buf_o = [0u8; 4];
+    let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
+    let mut _reset_status: u16 = 0;
+    if let Ok(_val) = result {
+        _reset_status = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
+        hprintln!("_reset_status: {}", _reset_status);
+    } else {
+        hprintln!("error getting _reset_status: {:?}", result);
+    }
+}
+
 /// Read the Electronic ID 1st and 2nd Byte and return the 64-bit Serial Number.
 #[allow(clippy::type_complexity)]
 pub fn get_sensor_id(
