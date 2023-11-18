@@ -22,9 +22,9 @@ pub fn reset_sensor(
     let mut _reset_status: u16 = 0;
     if let Ok(_val) = result {
         _reset_status = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
-        hprintln!("_reset_status: {}", _reset_status);
+        //hprintln!("_reset_status: {}", _reset_status);
     } else {
-        hprintln!("error getting _reset_status: {:?}", result);
+        hprintln!("error sending reset sensor: {:?}", result);
     }
 }
 
@@ -101,7 +101,7 @@ pub fn get_rel_temperature(
     >,
 ) -> u16 {
     // issue command to "Measure Relative Temperature, Hold Master Mode"
-    let buf_i = [0xE0u8, 0];
+    let buf_i = [0xE3u8, 0];
     let mut buf_o = [0u8; 2];
     let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
     let mut temperature: u16 = 0;
@@ -152,7 +152,9 @@ pub fn hprint_fw_version(fw_ver: u8) {
 pub fn hprint_sensor_id(sensor_id: u64) {
     let snb_3 = (0x0000_0000_FF00_0000 & sensor_id) >> 24;
     let mut _dev_id: &str = Default::default();
-    if snb_3 == 0x0D {
+    if snb_3 == 0x00 || snb_3 == 0xFF {
+        _dev_id = "engineering sample";
+    } else if snb_3 == 0x0D {
         _dev_id = "Si7013";
     } else if snb_3 == 0x14 {
         _dev_id = "Si7020";
