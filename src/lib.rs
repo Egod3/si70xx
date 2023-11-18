@@ -79,7 +79,7 @@ pub fn get_rel_temperature(
     >,
 ) -> u16 {
     // issue command to "Measure Relative Temperature, Hold Master Mode"
-    let buf_i = [0xE5u8, 0];
+    let buf_i = [0xE0u8, 0];
     let mut buf_o = [0u8; 2];
     let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
     let mut temperature: u16 = 0;
