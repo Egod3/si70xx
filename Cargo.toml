@@ -13,3 +13,6 @@ cortex-m-semihosting = "0.5.0"
 stm32l4xx-hal = { version = "0.6.0", features = ["stm32l4x6"]}
 # TODO Try version = "0.7.1"
 #stm32l4xx-hal = { version = "0.7.1", features = ["stm32l476"]}
+
+[build-dependencies]
+cc = "1.0.25"

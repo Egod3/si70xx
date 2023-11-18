@@ -1,1 +1,50 @@
-# si70xx
+# si70xx Library
+This library is written in rust and can be used to get
+   the relative temperature and humidity from the
+   si70xx sensor boards from Silicon Labs.
+
+The following functions are supported:
+    - get sensor id - Read the Sensor ID of the device.
+        Reads 1st and 2nd Electronic ID or word from device.
+        Results in a 64-bit Serial Number being returned.
+        The data sheet only calls out 1 byte's meaning, SNB3 the
+        fourth byte in the lower word.  That byte is compared to see which
+        version of the sensor it is.
+    - get firmware version - Reads the firmware version of the sensor.
+    - get relative temperature - Reads the relative temperature the sensor is detecting.
+    - get relative humidity - Reads the relative humidity the sensor is detecting.
+
+TODO:
+    - Add the following commands:
+        - get temperature - get absolute temperature
+        - get humidity - get absolute humidity
+        - get temperature from previous RH measurement - good for testing
+        - Reset - Reset the sensor?
+        - Figure out how to enable the Heater (section 5.5)
+        - Read/Write User Register - Used to control if the Heater is on or off
+            Bit map in section 6.1 of Si7021-A20.pdf
+            Read reg, or in bit 2, to enable Header Enable, then write reg back
+            Read reg, clear bit 2, to disable Header Enable, then write reg back
+    - Add checksum byte checks to all commands.  This will help detect transmission errors
+    - get a si7020 and Si7013 version of the sensor to test
+
+# Testing
+I only own the Si7021-A20 as of writing this.  It would be good to get the other sensors
+to test this library with.
+
+
+# Sample Output from using this lib in stm32-rs application
+stm32-rs application which displays relative temp/humidity
+
+Device FW version: 2.0
+Device ID (snb_3): Si7021
+RAW sensor ID: 0x3D891CCC15FFB5FF
+Temperature: 10.37376 Celcius 50.672768 Fahrenheit
+% Relative Humidity: 34.683746 % RH
+
+Temperature: 10.33086 Celcius 50.59555 Fahrenheit
+% Relative Humidity: 34.668488 % RH
+
+Temperature: 10.30941 Celcius 50.55694 Fahrenheit
+% Relative Humidity: 34.668488 % RH
+

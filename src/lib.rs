@@ -6,6 +6,7 @@ use stm32l4xx_hal::{i2c::I2c, pac, prelude::*};
 
 const I2C_SECOND_ADDR: u8 = 0x40;
 
+/// Read the Electronic ID 1st and 2nd Byte and return the 64-bit Serial Number.
 #[allow(clippy::type_complexity)]
 pub fn get_sensor_id(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
@@ -17,6 +18,7 @@ pub fn get_sensor_id(
     >,
 ) -> u64 {
     let mut buf_i = [0xFAu8, 0x0Fu8];
+    // TODO: try and read 8 bytes and see if 4 are CRC...
     let mut buf_o = [0u8; 4];
     let mut sensor_id: u64 = 0;
     let mut result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
@@ -42,6 +44,7 @@ pub fn get_sensor_id(
     sensor_id
 }
 
+/// Get the firmware version from the sensor device.
 #[allow(clippy::type_complexity)]
 pub fn get_fw_version(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
@@ -64,8 +67,9 @@ pub fn get_fw_version(
     fw_ver
 }
 
+/// Get the releative temperature of the sensor device.
 #[allow(clippy::type_complexity)]
-pub fn get_temperature(
+pub fn get_rel_temperature(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
         (
@@ -74,7 +78,8 @@ pub fn get_temperature(
         ),
     >,
 ) -> u16 {
-    let buf_i = [0xE3u8, 0];
+    // issue command to "Measure Relative Temperature, Hold Master Mode"
+    let buf_i = [0xE5u8, 0];
     let mut buf_o = [0u8; 2];
     let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
     let mut temperature: u16 = 0;
@@ -86,8 +91,9 @@ pub fn get_temperature(
     temperature
 }
 
+/// Get the releative humidity of the sensor device.
 #[allow(clippy::type_complexity)]
-pub fn get_humidity(
+pub fn get_rel_humidity(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
         (
@@ -96,6 +102,7 @@ pub fn get_humidity(
         ),
     >,
 ) -> u16 {
+    // issue command to "Measure Relative Humidity, Hold Master Mode"
     let buf_i = [0xE5u8, 0];
     let mut buf_o = [0u8; 2];
     let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
@@ -108,53 +115,63 @@ pub fn get_humidity(
     humidity
 }
 
+/// Print the firmware version to the semi-hosting shell.
 pub fn hprint_fw_version(fw_ver: u8) {
-    if fw_ver == 0x20 {
-        hprintln!("Device FW version: 2.0");
-    } else if fw_ver == 0xFF {
+    if fw_ver == 0xFF {
         hprintln!("Device FW version: 1.0");
+    } else if fw_ver == 0x20 {
+        hprintln!("Device FW version: 2.0");
     } else {
         hprintln!("Device FW version: unknown");
     }
 }
 
+/// Print the sensor id to the semi-hosting shell.
 pub fn hprint_sensor_id(sensor_id: u64) {
     let snb_3 = (0x0000_0000_FF00_0000 & sensor_id) >> 24;
     let mut _dev_id: &str = Default::default();
-    if snb_3 == 0x15 {
-        _dev_id = "Si7020";
-    } else if snb_3 == 0x14 {
-        _dev_id = "Si7021";
-    } else if snb_3 == 0x0D {
+    if snb_3 == 0x0D {
         _dev_id = "Si7013";
+    } else if snb_3 == 0x14 {
+        _dev_id = "Si7020";
+    } else if snb_3 == 0x15 {
+        _dev_id = "Si7021";
     } else {
         _dev_id = "unknown";
     }
-    hprintln!("Device ID: {}", _dev_id);
+    hprintln!("Device ID (snb_3): {}", _dev_id);
     hprintln!("RAW sensor ID: {:#08X}", sensor_id);
 }
 
-/*
- * Formula for temperature conversion
- * ( (175.72 * Temp_code) / 65536) - 46.85 = Temperature in Celcius
- */
+/// Print the relative temperature to the semi-hosting shell.
+///
+/// Formula for relative temperature conversion
+/// ( (175.72 * Temp_code) / 65536) - 46.85 = Relative Temperature in Celcius
+///
 pub fn hprint_temperature(temperature: u16) {
     let temper_c = ((175.72 * temperature as f32) / 65536.0) - 46.85;
     let temper_f = (temper_c * 1.8) + 32.0;
-    hprintln!("Temperature: {} Celcius {} Fahrenheit", temper_c, temper_f);
+    hprintln!(
+        "Relative temperature: {} Celcius {} Fahrenheit",
+        temper_c,
+        temper_f
+    );
 }
 
-/*
- * Formula for Relative Humidity % conversion
- * ( (125 * RH_code) / 65536) - 6 = % Relative Humidity
- */
+/// Print the relative humidity to the semi-hosting shell.
+///
+/// Formula for Relative Humidity % conversion
+/// ( (125 * RH_code) / 65536) - 6 = % Relative Humidity
+///
 pub fn hprint_humidity(humidity: u16) {
     let percent_rh: f32 = ((125.0 * humidity as f32) / 65536.0) - 6.0;
-    hprintln!("% Relative Humidity: {} % RH ", percent_rh);
+    hprintln!("% Relative Humidity: {} % RH", percent_rh);
 }
 
+/// Initialize the I2C settings for the STM32L476 to talk to the Si7021 temperature sensor.
+/// Setup GPIO pins pb8 and pb9 as ouput and scl and sda respectively.
 #[allow(clippy::type_complexity)]
-pub fn dev_init() -> stm32l4xx_hal::i2c::I2c<
+pub fn i2c_init() -> stm32l4xx_hal::i2c::I2c<
     stm32l4xx_hal::pac::I2C1,
     (
         PB8<Alternate<AF4, Output<OpenDrain>>>,
@@ -182,19 +199,20 @@ pub fn dev_init() -> stm32l4xx_hal::i2c::I2c<
     I2c::i2c1(dp.I2C1, (scl, sda), 400.khz(), clocks, &mut rcc.apb1r1)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Initialize the GPIO for ???
+#[allow(clippy::type_complexity)]
+pub fn gpio_init() {
+    let dp = pac::Peripherals::take().unwrap();
+    let mut rcc = dp.RCC.constrain();
+    // Needed to configure LED as and output and set it to high
+    let mut gpioa = dp.GPIOA.split(&mut rcc.ahb2);
 
-    #[test]
-    fn fw_ver_sensor_id_test() {
-        let mut i2c1 = dev_init();
-        let fw_ver = get_fw_version(&mut i2c1);
-        hprint_fw_version(fw_ver);
-        assert_eq!(fw_ver, 0x20);
-        let sensor_id = get_sensor_id(&mut i2c1);
-        hprint_sensor_id(sensor_id);
-        // 0x3D891CCC15FFB5FF
-        assert_eq!(sensor_id, 0x3D89_1CCC_15FF_B5FF);
-    }
+    // Setup GPIO PA5 as output
+    let mut led = gpioa
+        .pa5
+        .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
+    //let mut led = gpiob.pa13.into_push_pull_output();
+    let _led_status = led.set_high();
+
+    //&led
 }
