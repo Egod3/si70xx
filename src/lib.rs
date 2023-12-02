@@ -6,7 +6,128 @@ use stm32l4xx_hal::{i2c::I2c, pac, prelude::*};
 
 const I2C_SECOND_ADDR: u8 = 0x40;
 
+/// Get the relative humidity of the sensor device, Hold Mater Mode.
+#[allow(clippy::type_complexity)]
+pub fn get_rel_humidity(
+    i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
+        stm32l4xx_hal::pac::I2C1,
+        (
+            PB8<Alternate<AF4, Output<OpenDrain>>>,
+            PB9<Alternate<AF4, Output<OpenDrain>>>,
+        ),
+    >,
+) -> u16 {
+    // issue command to "Measure Relative Humidity, Hold Master Mode"
+    let buf_i = [0xE5u8, 0];
+    let mut buf_o = [0u8; 2];
+    let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
+    let mut humidity: u16 = 0;
+    if let Ok(_val) = result {
+        humidity = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
+    } else {
+        hprintln!("error getting humidity: {:?}", result);
+    }
+    humidity
+}
+
+/// Get the relative humidity of the sensor device, No Hold Mater Mode.
+#[allow(clippy::type_complexity)]
+pub fn get_rel_humidity_nh(
+    i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
+        stm32l4xx_hal::pac::I2C1,
+        (
+            PB8<Alternate<AF4, Output<OpenDrain>>>,
+            PB9<Alternate<AF4, Output<OpenDrain>>>,
+        ),
+    >,
+) -> u16 {
+    // issue command to "Measure Relative Humidity, No Hold Master Mode"
+    let buf_i = [0xF5u8, 0];
+    let mut buf_o = [0u8; 2];
+    let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
+    let mut humidity: u16 = 0;
+    if let Ok(_val) = result {
+        humidity = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
+    } else {
+        hprintln!("error getting humidity: {:?}", result);
+    }
+    humidity
+}
+
+/// Get the relative temperature of the sensor device, Hold Master Mode.
+#[allow(clippy::type_complexity)]
+pub fn get_rel_temperature(
+    i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
+        stm32l4xx_hal::pac::I2C1,
+        (
+            PB8<Alternate<AF4, Output<OpenDrain>>>,
+            PB9<Alternate<AF4, Output<OpenDrain>>>,
+        ),
+    >,
+) -> u16 {
+    // issue command to "Measure Temperature, Hold Master Mode"
+    let buf_i = [0xE3u8, 0];
+    let mut buf_o = [0u8; 2];
+    let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
+    let mut temperature: u16 = 0;
+    if let Ok(_val) = result {
+        temperature = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
+    } else {
+        hprintln!("error getting temperature: {:?}", result);
+    }
+    temperature
+}
+
+/// Get the relative temperature of the sensor device, No Hold Master Mode.
+#[allow(clippy::type_complexity)]
+pub fn get_rel_temperature_nh(
+    i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
+        stm32l4xx_hal::pac::I2C1,
+        (
+            PB8<Alternate<AF4, Output<OpenDrain>>>,
+            PB9<Alternate<AF4, Output<OpenDrain>>>,
+        ),
+    >,
+) -> u16 {
+    // issue command to "Measure Temperature, No Hold Master Mode"
+    let buf_i = [0xF3u8, 0];
+    let mut buf_o = [0u8; 2];
+    let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
+    let mut temperature: u16 = 0;
+    if let Ok(_val) = result {
+        temperature = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
+    } else {
+        hprintln!("error getting temperature: {:?}", result);
+    }
+    temperature
+}
+
+/// Get the relative temperature from the previous relative humidity measurement of the sensor device.
+#[allow(clippy::type_complexity)]
+pub fn get_last_rel_temperature(
+    i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
+        stm32l4xx_hal::pac::I2C1,
+        (
+            PB8<Alternate<AF4, Output<OpenDrain>>>,
+            PB9<Alternate<AF4, Output<OpenDrain>>>,
+        ),
+    >,
+) -> u16 {
+    // issue command to "Read Temperature Value from Previous RH Measurement"
+    let buf_i = [0xE0u8, 0];
+    let mut buf_o = [0u8; 2];
+    let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
+    let mut temperature: u16 = 0;
+    if let Ok(_val) = result {
+        temperature = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
+    } else {
+        hprintln!("error getting temperature: {:?}", result);
+    }
+    temperature
+}
+
 /// Send the Software Reset to the device to allow it to reset.
+#[allow(clippy::type_complexity)]
 pub fn reset_sensor(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
@@ -40,7 +161,6 @@ pub fn get_sensor_id(
     >,
 ) -> u64 {
     let mut buf_i = [0xFAu8, 0x0Fu8];
-    // TODO: try and read 8 bytes and see if 4 are CRC...
     let mut buf_o = [0u8; 4];
     let mut sensor_id: u64 = 0;
     let mut result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
@@ -87,54 +207,6 @@ pub fn get_fw_version(
         hprintln!("error getting firmware version: {:?}", result);
     }
     fw_ver
-}
-
-/// Get the releative temperature of the sensor device.
-#[allow(clippy::type_complexity)]
-pub fn get_rel_temperature(
-    i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
-        stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
-    >,
-) -> u16 {
-    // issue command to "Measure Relative Temperature, Hold Master Mode"
-    let buf_i = [0xE3u8, 0];
-    let mut buf_o = [0u8; 2];
-    let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
-    let mut temperature: u16 = 0;
-    if let Ok(_val) = result {
-        temperature = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
-    } else {
-        hprintln!("error getting temperature: {:?}", result);
-    }
-    temperature
-}
-
-/// Get the releative humidity of the sensor device.
-#[allow(clippy::type_complexity)]
-pub fn get_rel_humidity(
-    i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
-        stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
-    >,
-) -> u16 {
-    // issue command to "Measure Relative Humidity, Hold Master Mode"
-    let buf_i = [0xE5u8, 0];
-    let mut buf_o = [0u8; 2];
-    let result = i2c_dev.write_read(I2C_SECOND_ADDR, &buf_i, &mut buf_o);
-    let mut humidity: u16 = 0;
-    if let Ok(_val) = result {
-        humidity = (0xFF_00 & (buf_o[0] as u16) << 8) | 0x00_FF & (buf_o[1] as u16);
-    } else {
-        hprintln!("error getting humidity: {:?}", result);
-    }
-    humidity
 }
 
 /// Print the firmware version to the semi-hosting shell.
@@ -221,22 +293,4 @@ pub fn i2c_init() -> stm32l4xx_hal::i2c::I2c<
     let sda = sda.into_af4(&mut gpiob.moder, &mut gpiob.afrh);
 
     I2c::i2c1(dp.I2C1, (scl, sda), 400.khz(), clocks, &mut rcc.apb1r1)
-}
-
-/// Initialize the GPIO for ???
-#[allow(clippy::type_complexity)]
-pub fn gpio_init() {
-    let dp = pac::Peripherals::take().unwrap();
-    let mut rcc = dp.RCC.constrain();
-    // Needed to configure LED as and output and set it to high
-    let mut gpioa = dp.GPIOA.split(&mut rcc.ahb2);
-
-    // Setup GPIO PA5 as output
-    let mut led = gpioa
-        .pa5
-        .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
-    //let mut led = gpiob.pa13.into_push_pull_output();
-    let _led_status = led.set_high();
-
-    //&led
 }
