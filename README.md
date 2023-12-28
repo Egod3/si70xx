@@ -22,7 +22,7 @@ I only own the Si7021-A20 as of writing this.  It would be good to get the other
 to test this library with.
 
 
-# Sample Output from using this lib in stm32-rs application
+# Sample Output via openocd from using this lib in stm32-rs application
 stm32-rs application which displays relative temp/humidity
 
 Device FW version: 2.0
@@ -36,4 +36,19 @@ Temperature: 10.33086 Celcius 50.59555 Fahrenheit
 
 Temperature: 10.30941 Celcius 50.55694 Fahrenheit
 % Relative Humidity: 34.668488 % RH
+
+# Sample Output via itmdump from using this lib in stm32-rs application
+System clock running at Hertz(16000000) Hz<br>
+AHB clock running at Hertz(16000000) Hz<br>
+APB 1 running at Hertz(16000000) Hz<br>
+APB 2 running at Hertz(16000000) Hz<br>
+<br>
+Device FW version: 2.0<br>
+Device ID (snb_3): Si7021<br>
+RAW sensor ID: 0x3D891CCC15FFB5FF<br>
+Rel Temperature: 21.125671 C 70.02621 F<br>
+% Rel Humidity: 34.691376 % RH<br>
+<br>
+Rel Temperature: 21.104218 C 69.987595 F<br>
+% Rel Humidity: 34.66086 % RH<br>
 

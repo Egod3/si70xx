@@ -1,5 +1,6 @@
 #![no_std]
 
+use cortex_m::iprintln;
 use cortex_m_semihosting::hprintln;
 use stm32l4xx_hal::gpio::{Alternate, OpenDrain, Output, AF4, PB8, PB9};
 use stm32l4xx_hal::{i2c::I2c, pac, prelude::*};
@@ -258,6 +259,57 @@ pub fn hprint_temperature(temperature: u16) {
 pub fn hprint_humidity(humidity: u16) {
     let percent_rh: f32 = ((125.0 * humidity as f32) / 65536.0) - 6.0;
     hprintln!("% Rel Humidity: {} % RH\n", percent_rh);
+}
+
+/// Print the firmware version to the semi-hosting shell.
+pub fn iprint_fw_version(stim: &mut cortex_m::peripheral::itm::Stim, fw_ver: u8) {
+    if fw_ver == 0xFF {
+        iprintln!(stim, "Device FW version: 1.0");
+    } else if fw_ver == 0x20 {
+        iprintln!(stim, "Device FW version: 2.0");
+    } else {
+        iprintln!(stim, "Device FW version: unknown");
+    }
+}
+
+/// Print the sensor id to the semi-hosting shell.
+pub fn iprint_sensor_id(stim: &mut cortex_m::peripheral::itm::Stim, sensor_id: u64) {
+    let snb_3 = (0x0000_0000_FF00_0000 & sensor_id) >> 24;
+    let mut _dev_id: &str = Default::default();
+    if snb_3 == 0x00 || snb_3 == 0xFF {
+        _dev_id = "engineering sample";
+    } else if snb_3 == 0x0D {
+        _dev_id = "Si7013";
+    } else if snb_3 == 0x14 {
+        _dev_id = "Si7020";
+    } else if snb_3 == 0x15 {
+        _dev_id = "Si7021";
+    } else {
+        _dev_id = "unknown";
+    }
+    iprintln!(stim, "Device ID (snb_3): {}", _dev_id);
+    iprintln!(stim, "RAW sensor ID: {:#08X}", sensor_id);
+}
+
+/// Print the relative temperature to the semi-hosting shell.
+///
+/// Formula for relative temperature conversion
+/// ( (175.72 * Temp_code) / 65536) - 46.85 = Relative Temperature in Celcius
+///
+pub fn iprint_temperature(stim: &mut cortex_m::peripheral::itm::Stim, temperature: u16) {
+    let temper_c = ((175.72 * temperature as f32) / 65536.0) - 46.85;
+    let temper_f = (temper_c * 1.8) + 32.0;
+    iprintln!(stim, "Rel Temperature: {} C {} F", temper_c, temper_f);
+}
+
+/// Print the relative humidity to the semi-hosting shell.
+///
+/// Formula for Relative Humidity % conversion
+/// ( (125 * RH_code) / 65536) - 6 = % Relative Humidity
+///
+pub fn iprint_humidity(stim: &mut cortex_m::peripheral::itm::Stim, humidity: u16) {
+    let percent_rh: f32 = ((125.0 * humidity as f32) / 65536.0) - 6.0;
+    iprintln!(stim, "% Rel Humidity: {} % RH\n", percent_rh);
 }
 
 /// Initialize the I2C settings for the STM32L476 to talk to the Si7021 temperature sensor.
