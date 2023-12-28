@@ -247,11 +247,7 @@ pub fn hprint_sensor_id(sensor_id: u64) {
 pub fn hprint_temperature(temperature: u16) {
     let temper_c = ((175.72 * temperature as f32) / 65536.0) - 46.85;
     let temper_f = (temper_c * 1.8) + 32.0;
-    hprintln!(
-        "Relative temperature: {} Celcius {} Fahrenheit",
-        temper_c,
-        temper_f
-    );
+    hprintln!("Rel Temperature: {} C {} F", temper_c, temper_f);
 }
 
 /// Print the relative humidity to the semi-hosting shell.
@@ -261,7 +257,7 @@ pub fn hprint_temperature(temperature: u16) {
 ///
 pub fn hprint_humidity(humidity: u16) {
     let percent_rh: f32 = ((125.0 * humidity as f32) / 65536.0) - 6.0;
-    hprintln!("% Relative Humidity: {} % RH", percent_rh);
+    hprintln!("% Rel Humidity: {} % RH\n", percent_rh);
 }
 
 /// Initialize the I2C settings for the STM32L476 to talk to the Si7021 temperature sensor.
