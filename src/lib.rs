@@ -210,7 +210,7 @@ pub fn get_fw_version(
     fw_ver
 }
 
-/// Print the firmware version to the semi-hosting shell.
+/// Log the firmware version to the semi-hosting transport.
 pub fn hprint_fw_version(fw_ver: u8) {
     if fw_ver == 0xFF {
         hprintln!("Device FW version: 1.0");
@@ -221,7 +221,7 @@ pub fn hprint_fw_version(fw_ver: u8) {
     }
 }
 
-/// Print the sensor id to the semi-hosting shell.
+/// Log the sensor id to the semi-hosting transport.
 pub fn hprint_sensor_id(sensor_id: u64) {
     let snb_3 = (0x0000_0000_FF00_0000 & sensor_id) >> 24;
     let mut _dev_id: &str = Default::default();
@@ -240,7 +240,7 @@ pub fn hprint_sensor_id(sensor_id: u64) {
     hprintln!("RAW sensor ID: {:#08X}", sensor_id);
 }
 
-/// Print the relative temperature to the semi-hosting shell.
+/// Log the relative temperature to the semi-hosting transport.
 ///
 /// Formula for relative temperature conversion
 /// ( (175.72 * Temp_code) / 65536) - 46.85 = Relative Temperature in Celcius
@@ -251,7 +251,7 @@ pub fn hprint_temperature(temperature: u16) {
     hprintln!("Rel Temperature: {} C {} F", temper_c, temper_f);
 }
 
-/// Print the relative humidity to the semi-hosting shell.
+/// Log the relative humidity to the semi-hosting transport.
 ///
 /// Formula for Relative Humidity % conversion
 /// ( (125 * RH_code) / 65536) - 6 = % Relative Humidity
@@ -261,7 +261,7 @@ pub fn hprint_humidity(humidity: u16) {
     hprintln!("% Rel Humidity: {} % RH\n", percent_rh);
 }
 
-/// Print the firmware version to the semi-hosting shell.
+/// Log the firmware version to the ITM.
 pub fn iprint_fw_version(stim: &mut cortex_m::peripheral::itm::Stim, fw_ver: u8) {
     if fw_ver == 0xFF {
         iprintln!(stim, "Device FW version: 1.0");
@@ -272,7 +272,7 @@ pub fn iprint_fw_version(stim: &mut cortex_m::peripheral::itm::Stim, fw_ver: u8)
     }
 }
 
-/// Print the sensor id to the semi-hosting shell.
+/// Log the sensor id to the ITM.
 pub fn iprint_sensor_id(stim: &mut cortex_m::peripheral::itm::Stim, sensor_id: u64) {
     let snb_3 = (0x0000_0000_FF00_0000 & sensor_id) >> 24;
     let mut _dev_id: &str = Default::default();
@@ -291,22 +291,14 @@ pub fn iprint_sensor_id(stim: &mut cortex_m::peripheral::itm::Stim, sensor_id: u
     iprintln!(stim, "RAW sensor ID: {:#08X}", sensor_id);
 }
 
-/// Print the relative temperature to the semi-hosting shell.
-///
-/// Formula for relative temperature conversion
-/// ( (175.72 * Temp_code) / 65536) - 46.85 = Relative Temperature in Celcius
-///
+/// Log the relative temperature to the ITM.
 pub fn iprint_temperature(stim: &mut cortex_m::peripheral::itm::Stim, temperature: u16) {
     let temper_c = ((175.72 * temperature as f32) / 65536.0) - 46.85;
     let temper_f = (temper_c * 1.8) + 32.0;
     iprintln!(stim, "Rel Temperature: {} C {} F", temper_c, temper_f);
 }
 
-/// Print the relative humidity to the semi-hosting shell.
-///
-/// Formula for Relative Humidity % conversion
-/// ( (125 * RH_code) / 65536) - 6 = % Relative Humidity
-///
+/// Log the relative humidity to the ITM.
 pub fn iprint_humidity(stim: &mut cortex_m::peripheral::itm::Stim, humidity: u16) {
     let percent_rh: f32 = ((125.0 * humidity as f32) / 65536.0) - 6.0;
     iprintln!(stim, "% Rel Humidity: {} % RH\n", percent_rh);
