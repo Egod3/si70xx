@@ -2,8 +2,8 @@
 
 use cortex_m::iprintln;
 use cortex_m_semihosting::hprintln;
-use stm32l4xx_hal::gpio::{Alternate, OpenDrain, Output, AF4, PB8, PB9};
-use stm32l4xx_hal::{i2c::I2c, pac, prelude::*};
+use stm32l4xx_hal::gpio::{Alternate, OpenDrain, PB8, PB9};
+use stm32l4xx_hal::{i2c, i2c::I2c, pac, prelude::*};
 
 const I2C_SECOND_ADDR: u8 = 0x40;
 
@@ -12,10 +12,7 @@ const I2C_SECOND_ADDR: u8 = 0x40;
 pub fn get_rel_humidity(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
+        (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
     >,
 ) -> u16 {
     // issue command to "Measure Relative Humidity, Hold Master Mode"
@@ -36,10 +33,7 @@ pub fn get_rel_humidity(
 pub fn get_rel_humidity_nh(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
+        (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
     >,
 ) -> u16 {
     // issue command to "Measure Relative Humidity, No Hold Master Mode"
@@ -60,10 +54,7 @@ pub fn get_rel_humidity_nh(
 pub fn get_rel_temperature(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
+        (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
     >,
 ) -> u16 {
     // issue command to "Measure Temperature, Hold Master Mode"
@@ -84,10 +75,7 @@ pub fn get_rel_temperature(
 pub fn get_rel_temperature_nh(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
+        (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
     >,
 ) -> u16 {
     // issue command to "Measure Temperature, No Hold Master Mode"
@@ -108,10 +96,7 @@ pub fn get_rel_temperature_nh(
 pub fn get_last_rel_temperature(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
+        (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
     >,
 ) -> u16 {
     // issue command to "Read Temperature Value from Previous RH Measurement"
@@ -132,10 +117,7 @@ pub fn get_last_rel_temperature(
 pub fn reset_sensor(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
+        (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
     >,
 ) {
     let buf_i = [0xFEu8, 0];
@@ -155,10 +137,7 @@ pub fn reset_sensor(
 pub fn get_sensor_id(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
+        (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
     >,
 ) -> u64 {
     let mut buf_i = [0xFAu8, 0x0Fu8];
@@ -192,10 +171,7 @@ pub fn get_sensor_id(
 pub fn get_fw_version(
     i2c_dev: &mut stm32l4xx_hal::i2c::I2c<
         stm32l4xx_hal::pac::I2C1,
-        (
-            PB8<Alternate<AF4, Output<OpenDrain>>>,
-            PB9<Alternate<AF4, Output<OpenDrain>>>,
-        ),
+        (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
     >,
 ) -> u8 {
     let buf_i = [0x84u8, 0xB8u8];
@@ -309,10 +285,7 @@ pub fn iprint_humidity(stim: &mut cortex_m::peripheral::itm::Stim, humidity: u16
 #[allow(clippy::type_complexity)]
 pub fn i2c_init() -> stm32l4xx_hal::i2c::I2c<
     stm32l4xx_hal::pac::I2C1,
-    (
-        PB8<Alternate<AF4, Output<OpenDrain>>>,
-        PB9<Alternate<AF4, Output<OpenDrain>>>,
-    ),
+    (PB8<Alternate<OpenDrain, 4>>, PB9<Alternate<OpenDrain, 4>>),
 > {
     let dp = pac::Peripherals::take().unwrap();
     let mut flash = dp.FLASH.constrain();
@@ -322,15 +295,22 @@ pub fn i2c_init() -> stm32l4xx_hal::i2c::I2c<
 
     let mut gpiob = dp.GPIOB.split(&mut rcc.ahb2);
 
-    let scl = gpiob
-        .pb8
-        .into_open_drain_output(&mut gpiob.moder, &mut gpiob.otyper);
-    let scl = scl.into_af4(&mut gpiob.moder, &mut gpiob.afrh);
+    let mut scl =
+        gpiob
+            .pb8
+            .into_alternate_open_drain(&mut gpiob.moder, &mut gpiob.otyper, &mut gpiob.afrh);
+    scl.internal_pull_up(&mut gpiob.pupdr, true);
 
-    let sda = gpiob
-        .pb9
-        .into_open_drain_output(&mut gpiob.moder, &mut gpiob.otyper);
-    let sda = sda.into_af4(&mut gpiob.moder, &mut gpiob.afrh);
+    let mut sda =
+        gpiob
+            .pb9
+            .into_alternate_open_drain(&mut gpiob.moder, &mut gpiob.otyper, &mut gpiob.afrh);
+    sda.internal_pull_up(&mut gpiob.pupdr, true);
 
-    I2c::i2c1(dp.I2C1, (scl, sda), 400.khz(), clocks, &mut rcc.apb1r1)
+    I2c::i2c1(
+        dp.I2C1,
+        (scl, sda),
+        i2c::Config::new(400.kHz(), clocks),
+        &mut rcc.apb1r1,
+    )
 }
